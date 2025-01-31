@@ -1,0 +1,6 @@
+pyspark
+pyiceberg
+pyminio
+nessie
+pandas
+notebook
