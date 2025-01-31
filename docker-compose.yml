@@ -2,42 +2,74 @@ version: '3.8'
 
 services:
   minio:
-    image: quay.io/minio/minio
+    image: quay.io/minio/minio:latest
     container_name: minio
-    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+      - MINIO_DOMAIN=minio
+    networks:
+      iceberg_net:
+        aliases:
+          - warehouse.minio
     ports:
       - "9000:9000"
       - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password
+    command: ["server", "/data", "--console-address", ":9001"]
     volumes:
-      - minio-data:/data
+      - minio_data:/data
+
+  mc:
+    image: minio/mc:latest
+    container_name: mc
+    depends_on:
+      - minio
+    networks:
+      - iceberg_net
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set minio http://minio:9000 admin password); do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/warehouse;
+      /usr/bin/mc mb minio/warehouse;
+      /usr/bin/mc policy set public minio/warehouse;
+      tail -f /dev/null
+      "
 
   nessie:
-    image: projectnessie/nessie
+    image: ghcr.io/projectnessie/nessie:0.101.3
     container_name: nessie
+    networks:
+      - iceberg_net
     ports:
       - "19120:19120"
-
-  spark:
-    image: bitnami/spark:latest
-    container_name: spark
-    ports:
-      - "8080:8080"
-      - "7077:7077"
     environment:
-      - SPARK_MODE=master
+      - QUARKUS_HTTP_PORT=19120
 
-  jupyter:
-    image: jupyter/pyspark-notebook
-    container_name: jupyter
+  iceberg-rest:
+    image: tabulario/iceberg-rest:latest
+    container_name: iceberg-rest
+    networks:
+      - iceberg_net
     ports:
-      - "8888:8888"
-    volumes:
-      - ./notebooks:/home/jovyan/work
-    depends_on:
-      - spark
+      - "8181:8181"
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+      - CATALOG_WAREHOUSE=s3://warehouse/
+      - CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO
+      - CATALOG_S3_ENDPOINT=http://minio:9000
 
-volumes:
-  minio-data:
+  spark-iceberg:
+    image: tabulario/spark-iceberg:3.5.1_1.5.0
+    container_name: spark-iceberg
+    networks:
+      - iceberg_net
+    depends_on:
+      - iceberg-rest
+      - nessie
+      - minio
+    volumes:
+      - ./notebooks:/home/iceberg/notebooks
+      - ./data:/home/iceberg/data
+      -
