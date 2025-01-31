@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: iceberg-snapshot-cleanup
+spec:
+  schedule: "0 0 * * *"  # Run daily at midnight
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: snapshot-cleanup
+            image: your-image:tag
+            command:
+            - python
+            - /app/etl/snapshot_cleanup.py
+          restartPolicy: OnFailure 
