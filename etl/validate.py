@@ -1,7 +1,13 @@
-"""Data validation script for TimeStream project."""
+"""Data validation script for TimeStream project using Great Expectations."""
+
+import logging
+from typing import Dict, List
+from pathlib import Path
 
 from pyspark.sql import SparkSession
-import logging
+import great_expectations as gx
+from great_expectations.core.batch import RuntimeBatchRequest
+from great_expectations.core.expectation_configuration import ExpectationConfiguration
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,35 +23,99 @@ def create_spark_session():
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .getOrCreate())
 
-def validate_data(spark: SparkSession) -> bool:
-    """Validate the cleaned data."""
+def create_expectation_suite() -> gx.core.ExpectationSuite:
+    """Create Great Expectations suite for taxi data validation."""
+    context = gx.get_context()
+    
+    suite_name = "taxi_data_suite"
+    context.create_expectation_suite(suite_name, overwrite_existing=True)
+    
+    suite = context.get_expectation_suite(suite_name)
+    
+    # Add expectations
+    expectations = [
+        ExpectationConfiguration(
+            expectation_type="expect_column_to_exist",
+            kwargs={"column": "passenger_count"}
+        ),
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "passenger_count",
+                "min_value": 1,
+                "max_value": 8
+            }
+        ),
+        ExpectationConfiguration(
+            expectation_type="expect_column_to_exist",
+            kwargs={"column": "pickup_datetime"}
+        ),
+        ExpectationConfiguration(
+            expectation_type="expect_column_to_exist",
+            kwargs={"column": "dropoff_datetime"}
+        ),
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_not_be_null",
+            kwargs={"column": "pickup_datetime"}
+        )
+    ]
+    
+    for expectation in expectations:
+        suite.add_expectation(expectation)
+    
+    context.save_expectation_suite(suite)
+    return suite
+
+def validate_with_great_expectations(spark: SparkSession, table_name: str) -> bool:
+    """Validate data using Great Expectations."""
     try:
-        # Load cleaned data
-        df = spark.read.format("iceberg").load("nessie.timestream.cleaned_trips")
+        # Initialize GX context
+        context = gx.get_context()
         
-        # Basic validations
-        total_count = df.count()
-        valid_count = df.filter(df.passenger_count > 0).count()
+        # Load data
+        df = spark.read.format("iceberg").load(table_name)
         
-        # Schema validation
-        required_columns = ['passenger_count', 'pickup_datetime', 'dropoff_datetime']
-        missing_columns = [col for col in required_columns if col not in df.columns]
+        # Create suite if not exists
+        suite = create_expectation_suite()
         
-        if missing_columns:
-            logger.error(f"Missing required columns: {missing_columns}")
-            return False
+        # Create batch request
+        batch_request = RuntimeBatchRequest(
+            datasource_name="my_spark_datasource",
+            data_connector_name="default_runtime_data_connector_name",
+            data_asset_name="taxi_data",
+            batch_identifiers={"default_identifier_name": "default_identifier"},
+            runtime_parameters={"batch_data": df}
+        )
+        
+        # Validate data
+        checkpoint = context.add_or_update_checkpoint(
+            name="taxi_data_checkpoint",
+            validations=[
+                {
+                    "batch_request": batch_request,
+                    "expectation_suite_name": suite.expectation_suite_name
+                }
+            ]
+        )
+        
+        results = checkpoint.run()
+        
+        # Generate validation report
+        report_path = Path("validation_results")
+        report_path.mkdir(exist_ok=True)
+        
+        context.build_data_docs()
+        
+        # Check if validation passed
+        success = results["success"]
+        
+        if success:
+            logger.info("Data validation passed all expectations!")
+        else:
+            logger.error("Data validation failed expectations!")
+            logger.error(f"See detailed report in {report_path}")
             
-        # Data validation
-        if total_count == 0:
-            logger.error("No data found in the table")
-            return False
-            
-        if valid_count != total_count:
-            logger.error(f"Invalid records found: {total_count - valid_count}")
-            return False
-            
-        logger.info("All validations passed successfully")
-        return True
+        return success
         
     except Exception as e:
         logger.error(f"Validation failed with error: {e}")
@@ -56,7 +126,10 @@ def main():
     spark = None
     try:
         spark = create_spark_session()
-        is_valid = validate_data(spark)
+        is_valid = validate_with_great_expectations(
+            spark=spark,
+            table_name="nessie.timestream.cleaned_trips"
+        )
         if not is_valid:
             raise ValueError("Data validation failed")
     finally:
