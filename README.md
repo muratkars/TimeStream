@@ -147,3 +147,70 @@ df_old = spark.read.format("iceberg").option("snapshot-id", snapshot_id).load("n
 df_old.show(5)
 ```
 
+## **Troubleshooting**
+
+❗ MinIO Access Issues
+
+- Check if MinIO is running:
+
+    ```sh
+    docker logs minio
+    ```
+- Manually log in to MinIO:
+
+   - Open http://localhost:9001
+   - Login: admin
+   - Password: password 
+
+❗ Jupyter Notebook Not Accessible
+
+- Restart the Jupyter service:  
+
+    ```sh
+    docker-compose restart jupyter
+    ```
+❗ Spark Job Fails
+
+- Check Spark logs:
+
+    ```sh
+    docker logs spark-iceberg
+    ```
+
+## **Folder Structure**
+
+```
+TimeStream/
+│── docker-compose.yml
+│── requirements.txt
+│── README.md
+│── LICENSE
+│
+├── etl/
+│   ├── ingest.py        # Raw data ingestion
+│   ├── transform.py     # Data transformation using Spark
+│   ├── validate.py      # Data validation before merging
+│
+├── notebooks/
+│   ├── exploration.ipynb  # Jupyter Notebook for interactive queries
+│
+├── config/
+│   ├── nessie_config.json
+│   ├── iceberg_config.json
+```
+
+## **License**
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.  
+
+## **Next Steps**
+🔹 Expand dataset integration by including multi-year taxi trip data
+🔹 Implement real-time streaming ETL with Kafka
+🔹 Improve data governance with role-based access control
+🔹 Add more data sources and transformations.
+🔹 Implement more advanced data validation and quality checks.
+🔹 Add more interactive visualizations and dashboards.
+🔹 Add more advanced data versioning and branching strategies.
+
+## **Acknowledgments**
+Thanks to the contributors and maintainers of the technologies used in this project.
+
