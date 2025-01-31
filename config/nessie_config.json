@@ -1,0 +1,4 @@
+{
+  "nessie_uri": "http://localhost:19120/api/v1",
+  "default_branch": "main"
+}
