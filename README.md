@@ -1,216 +1,206 @@
-# **TimeStream - A Versioned Data Lakehouse with Atomic ETL Pipelines**  
+# **TimeStream - A Modern Data Lakehouse with Advanced ETL**
 
-🚀 **Data Versioning | Time Travel | Git-Like Branching | Atomic ETL**  
+🚀 **Data Versioning | Quality Monitoring | Multi-Format Support | Optimized Queries**
 
-**TimeStream** is a **modern data lakehouse** designed for **data versioning, reproducibility, and atomic ETL pipelines**. It combines **Git-like data management** with **structured storage** to enable **branching, merging, and time travel** for analytics and AI applications.
+## **Overview**
+TimeStream is a modern data lakehouse solution that combines robust data versioning, quality monitoring, and optimized query performance. It provides a complete ETL pipeline with support for multiple data formats and automated quality checks.
 
-With **TimeStream**, data engineers can work in isolated development branches, validate transformations, and merge updates seamlessly into production—ensuring **data consistency, efficiency, and scalability**.
+## **Key Features**
 
----
+### **Core Capabilities**
+- 🔄 **Git-Like Data Versioning**
+  - Branch-based development
+  - Atomic commits
+  - Time travel queries
+- 🛡️ **Data Quality**
+  - Automated validation with Great Expectations
+  - Schema enforcement
+  - Quality reports generation
+- 🚀 **Performance Optimization**
+  - Z-ordered indexing
+  - Intelligent partitioning
+  - Query optimization
 
-## **Key Features**  
-✅ **Git-Inspired Data Management** – Use branches and commits for tracking data changes over time.  
-✅ **Atomic ETL Pipelines** – Guarantee **data consistency** by merging only validated changes.  
-✅ **Time Travel & Auditing** – Query **historical snapshots** using commit hashes or timestamps.  
-✅ **Efficient Storage** – Symbolic branching **reduces data duplication** and optimizes storage.  
-✅ **Dockerized Deployment** – Fully **containerized stack**, easy to set up and run.  
+### **Advanced Features**
+- 📊 **Multi-Format Support**
+  - Parquet, Delta Lake, CSV, JSON
+  - ORC and Avro compatibility
+  - Format conversion utilities
+- 🔄 **Snapshot Management**
+  - Automatic cleanup
+  - Retention policies
+  - Version history
+- 📈 **Monitoring & Metrics**
+  - Performance tracking
+  - Quality metrics
+  - Usage analytics
 
----
+## **Architecture**
 
-## **Tech Stack**
-| Technology  | Purpose |
-|-------------|---------|
-| **MinIO**   | S3-compatible object storage for data lake storage. |
-| **Apache Iceberg** | Table format enabling time travel, snapshotting, and schema evolution. |
-| **Nessie**  | Git-like catalog for data versioning, branching, and merging. |
-| **Apache Spark** | Distributed computing engine for ETL and transformations. |
-| **Jupyter Notebooks** | Interactive exploration and visualization of datasets. |
+### **Tech Stack**
+| Component | Technology | Purpose |
+|-----------|------------|----------|
+| Storage | MinIO | S3-compatible object storage |
+| Table Format | Apache Iceberg | Versioned table management |
+| Version Control | Nessie | Git-like data versioning |
+| Processing | Apache Spark | Distributed computation |
+| Quality | Great Expectations | Data validation |
+| Format Support | Delta Lake | ACID transactions |
+| Analytics | Jupyter | Data exploration |
 
----
-
-## **Dataset**
-We use the **NYC Taxi Trip Data**, a real-world dataset from the [New York City Taxi and Limousine Commission](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page).  
-
-### **Dataset Overview**
-- **Source:** Public dataset containing **trip details**, including pickup/drop-off locations, timestamps, fares, and passenger counts.
-- **Format:** **Parquet**
-- **Size:** **~1GB per month of data**  
-- **Use Case:** Used for demonstrating **ETL processes**, **branch-based transformations**, and **time travel queries**.
-
----
-
-## **Workflow: Versioned ETL Pipeline**
-TimeStream follows a structured, **branch-based** workflow for data processing, similar to a Git workflow:
-
-### **1️⃣ Raw Data Ingestion (`raw` branch)**
-- Ingest raw data into **MinIO** object storage.
-- Store **initial unprocessed data** in Apache Iceberg under a separate branch.
-
-### **2️⃣ Data Transformation (`dev` branch)**
-- Run transformations using **Apache Spark**.
-- Perform **data cleaning**, **aggregations**, and **format conversions**.
-- Store **intermediate results** in a separate development branch.
-
-### **3️⃣ Validation & Quality Checks (`dev` branch)**
-- Run automated **validation checks** to ensure data quality.
-- Verify **schema correctness, missing values, and logical consistency**.
-
-### **4️⃣ Promotion to Production (`main` branch)**
-- Merge **validated** changes from `dev` into `main`.
-- Ensure **atomic updates**, guaranteeing a consistent view of the data for consumers.
-
-### **5️⃣ Time Travel & Auditing (Commit Hashes & Tags)**
-- Retrieve **historical snapshots** using **Nessie commit hashes**.
-- Query **previous states** of the data for **auditing and debugging**.
-
----
-
-## **Getting Started**
-Follow these **step-by-step instructions** to set up and run TimeStream.
-
-### **1️⃣ Clone the Repository**
-```sh
-git clone https://github.com/muratkars/TimeStream.git
-cd TimeStream
+### **System Components**
+```
+TimeStream/
+├── etl/
+│   ├── ingest.py        # Data ingestion
+│   ├── transform.py     # Data transformation
+│   ├── validate.py      # Quality validation
+│   └── data_converter.py # Format conversion
+├── config/
+│   ├── iceberg_config.json
+│   └── nessie_config.json
+└── docker-compose.yml
 ```
 
-### **2️⃣ Start the Environment**
-Use Docker Compose to start the services:
-```sh
-docker-compose up -d
-```
-This will spin up MinIO, Nessie, Apache Spark, Iceberg REST, and Jupyter Notebooks.
+## **Setup & Installation**
 
-### **3️⃣ Explore the Data**
-Open Jupyter Notebooks and explore the data:
-```sh
-jupyter notebook
-```
+### **Prerequisites**
+- Docker and Docker Compose
+- Python 3.8+
+- 8GB+ RAM
 
-### **4️⃣ Verify Services**
-Run the following command to confirm everything is running:
-```sh
-docker ps
-```
-Ensure the following services are running:
-- minio
-- nessie
-- spark-iceberg
-- iceberg-rest
-- mc
-- jupyter
+### **Quick Start**
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/your-org/TimeStream.git
+   cd TimeStream
+   ```
 
-### **5️⃣ Run ETL Pipelines**  
-Step 1: Ingest Data
+2. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Download and store raw data in MinIO:
+3. **Start Services**
+   ```bash
+   docker-compose up -d
+   ```
 
-```sh
+4. **Initialize Components**
+   ```bash
+   great_expectations init
+   ```
+
+## **Usage Guide**
+
+### **1. Data Ingestion**
+```bash
 python etl/ingest.py
 ```
+- Supports multiple formats
+- Parallel processing
+- Progress monitoring
 
-Step 2: Transform Data
-
-Process and clean data using Apache Spark: 
-
-```sh
+### **2. Data Transformation**
+```bash
 python etl/transform.py
 ```
+- Optimized processing
+- Z-ordering
+- Partition management
 
-Step 3: Validate & Merge Data
-Validate the cleaned dataset before merging to main:    
-
-```sh
+### **3. Data Validation**
+```bash
 python etl/validate.py
 ```
+- Quality checks
+- Schema validation
+- Error reporting
 
-### **6️⃣ Explore Data in Jupyter**   
-Launch Jupyter Notebook to query and explore datasets:
+### **4. Format Conversion**
+```bash
+python etl/data_converter.py
+```
+- Multi-format support
+- Delta Lake integration
+- Optimized conversion
 
-```sh
-Open http://localhost:8888 and navigate to `notebooks/exploration.ipynb`
+## **Configuration**
+
+### **MinIO Settings**
+```json
+{
+  "endpoint": "localhost:9000",
+  "access_key": "minioadmin",
+  "secret_key": "minioadmin"
+}
 ```
 
-### **7️⃣ Query Data in Jupyter** 
-
-```sh
-df = spark.read.format("iceberg").load("nessie.timestream.cleaned_trips")
-df.show(5)
-
+### **Iceberg Configuration**
+```json
+{
+  "warehouse": "s3://timestream/",
+  "catalog": "nessie"
+}
 ```
 
-To retrieve previous versions:
+## **Monitoring & Maintenance**
 
-```sh
-snapshot_id = "your_snapshot_id_here"
-df_old = spark.read.format("iceberg").option("snapshot-id", snapshot_id).load("nessie.timestream.cleaned_trips")
-df_old.show(5)
-```
+### **Data Quality**
+- Access reports: `http://localhost:8080/great_expectations`
+- View validation results
+- Track quality metrics
+
+### **Performance**
+- Spark UI: `http://localhost:8080`
+- MinIO Console: `http://localhost:9001`
+- Nessie API: `http://localhost:19120`
+
+### **Maintenance**
+- Snapshot cleanup: `python etl/snapshot_cleanup.py`
+- Version history
+- Storage optimization
+
+## **Best Practices**
+
+### **Development Workflow**
+1. Create feature branch
+2. Develop and test transformations
+3. Validate data quality
+4. Merge to main branch
+
+### **Performance Optimization**
+- Use appropriate partitioning
+- Enable Z-ordering for spatial data
+- Configure proper retention policies
+
+### **Data Quality**
+- Define comprehensive expectations
+- Monitor validation results
+- Address quality issues promptly
 
 ## **Troubleshooting**
 
-❗ MinIO Access Issues
+### **Common Issues**
+- Service connectivity
+- Resource constraints
+- Version conflicts
 
-- Check if MinIO is running:
+### **Solutions**
+- Check service logs
+- Verify configurations
+- Ensure sufficient resources
 
-    ```sh
-    docker logs minio
-    ```
-- Manually log in to MinIO:
-
-   - Open http://localhost:9001
-   - Login: admin
-   - Password: password 
-
-❗ Jupyter Notebook Not Accessible
-
-- Restart the Jupyter service:  
-
-    ```sh
-    docker-compose restart jupyter
-    ```
-❗ Spark Job Fails
-
-- Check Spark logs:
-
-    ```sh
-    docker logs spark-iceberg
-    ```
-
-## **Folder Structure**
-
-```
-TimeStream/
-│── docker-compose.yml
-│── requirements.txt
-│── README.md
-│── LICENSE
-│
-├── etl/
-│   ├── ingest.py        # Raw data ingestion
-│   ├── transform.py     # Data transformation using Spark
-│   ├── validate.py      # Data validation before merging
-│
-├── notebooks/
-│   ├── exploration.ipynb  # Jupyter Notebook for interactive queries
-│
-├── config/
-│   ├── nessie_config.json
-│   ├── iceberg_config.json
-```
+## **Contributing**
+- Fork the repository
+- Create feature branch
+- Submit pull request
 
 ## **License**
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details.  
+Apache License 2.0
 
-## **Next Steps**
-🔹 Expand dataset integration by including multi-year taxi trip data
-🔹 Implement real-time streaming ETL with Kafka
-🔹 Improve data governance with role-based access control
-🔹 Add more data sources and transformations.
-🔹 Implement more advanced data validation and quality checks.
-🔹 Add more interactive visualizations and dashboards.
-🔹 Add more advanced data versioning and branching strategies.
-
-## **Acknowledgments**
-Thanks to the contributors and maintainers of the technologies used in this project.
+## **Support**
+- GitHub Issues
+- Documentation
+- Community Forums
 
