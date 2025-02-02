@@ -6,3 +6,4 @@ requests>=2.31.0
 python-dotenv>=1.0.0
 great_expectations>=0.17.15
 croniter>=2.0.0
+delta-spark>=2.4.0
